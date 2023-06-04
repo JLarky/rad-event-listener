@@ -1,9 +1,11 @@
-import { add } from "./main.ts";
+import { radEventListener, rad } from "./mod.ts";
 
-Deno.bench(function addSmall() {
-  add(1, 2);
+Deno.bench(function radEventListenerWindow() {
+  const cleanup = radEventListener(window, "load", () => {});
+  cleanup();
 });
 
-Deno.bench(function addBig() {
-  add(2 ** 32, 2 ** 32);
+Deno.bench(function radWindow() {
+  const cleanup = rad(window)((add) => add("load", () => {}));
+  cleanup();
 });
