@@ -6,6 +6,6 @@ Deno.bench(function radEventListenerWindow() {
 });
 
 Deno.bench(function radWindow() {
-  const cleanup = rad(window)((add) => add("load", () => {}));
+  const cleanup = rad(window, (add) => add("animationcancel", () => {}));
   cleanup();
 });

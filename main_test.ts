@@ -14,10 +14,9 @@ Deno.test(function radTest() {
   const removeEventListener = spy((type: "load", cb: () => void) => {});
   const onEvent = spy();
   // setup
-  const cleanup = rad({
-    addEventListener,
-    removeEventListener,
-  })((add) => add("load", onEvent));
+  const cleanup = rad({ addEventListener, removeEventListener }, (add) =>
+    add("load", onEvent)
+  );
   assertSpyCalls(addEventListener, 1);
   assertSpyCalls(removeEventListener, 0);
   assertSpyCall(addEventListener, 0, {
@@ -39,11 +38,7 @@ Deno.test(function radShouldFailTest() {
   const removeEventListener = spy((type: "load", cb: () => void) => {});
   // setup
   assertThrows(
-    () =>
-      rad({
-        addEventListener,
-        removeEventListener,
-      })(() => {}),
+    () => rad({ addEventListener, removeEventListener }, () => {}),
     Error,
     "you forgot to add event listener"
   );
