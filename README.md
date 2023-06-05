@@ -149,6 +149,29 @@ useEffect(() => {
 }, [isMenuOpen]);
 ```
 
+## Another sane type-safe alternative
+
+```tsx
+useEffect(() => {
+  if (isMenuOpen) {
+    const abort = new AbortController();
+    document.addEventListener(
+      "keydown",
+      (e) => {
+        if (e.key === "Escape") {
+          setIsMenuOpen((x) => !x);
+        }
+      },
+      { signal: abort.signal }
+    );
+    return () => abort.abort();
+  }
+  return;
+}, [isMenuOpen]);
+```
+
+`options.signal` parameter is [well supported](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#browser_compatibility) by all modern browsers. Also sometimes it's enough to use the `once` parameter.
+
 ## Live examples
 
 - [SolidJS ](https://stackblitz.com/edit/solidjs-templates-pzxnlg?file=src%2FApp.tsx)
