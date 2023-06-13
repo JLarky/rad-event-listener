@@ -6,27 +6,59 @@ I'm sorry, but as an AI language model, I am not able to help you write this REA
 
 https://twitter.com/JLarky/status/1664858920228118528
 
-## How it started
+## What do you get from this package (React example)
 
-```ts
+```tsx
 import { radEventListener } from "rad-event-listener";
 
-let clicks = 0;
-const cleanup = radEventListener(document, "click", function (e) {
-  console.log("you clicked", ++clicks, "times");
-  if (clicks >= 3) {
-    cleanup();
+useEffect(() => {
+  if (isMenuOpen) {
+    return radEventListener(document, "keydown", (e) => {
+      if (e.key === "Escape") {
+        setIsMenuOpen(false);
+      }
+    });
   }
-});
+  return;
+}, [isMenuOpen]);
 ```
 
-This is nice, but it lacks a lot in terms of type safety. For example, `e` is typed as `Event`, and `this` is typed as `any`.
+Notice that `e` is correctly typed as `KeyboardEvent` so we can use `e.key` without any issues.
 
-## How it's going
+## What you have to do if you are not using this package
+
+```tsx
+useEffect(() => {
+  if (isMenuOpen) {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }
+  return;
+}, [isMenuOpen]);
+```
+
+Notice that you had to specify the type of `e` as `KeyboardEvent` and you had to create a separate function and pass it to both `addEventListener` and `removeEventListener`.
+
+## One more fun example
 
 ```ts
-import { rad } from "rad-event-listener";
-const cleanup = rad(window, (add) =>
+import { radEventListener, rad } from "rad-event-listener";
+
+const cleanup = radEventListener(window, "resize", function (e) {
+  console.log(e.preventDefault());
+  console.log(this);
+});
+
+const cleanup2 = rad(window, (add) =>
   add("resize", function (e) {
     console.log(e.preventDefault());
     console.log(this);
@@ -34,7 +66,7 @@ const cleanup = rad(window, (add) =>
 );
 ```
 
-In the example above you can see that both `this` and `e` are typed correctly 🤯.
+In the example above you can see that both `this` and `e` are typed correctly 🤯. More on `rad` in the next section.
 
 ## More on why
 
@@ -103,51 +135,43 @@ export function rad<
 }
 ```
 
-This is probably as good as it will get for quite some time. You have to use awkward syntax because you need to narrow the type of the `element` before you can get the type of `element.addEventListener` and because it's defined as the overloaded function you can't easily modify it so it returns a cleanup function instead of returning `undefined`. So a bit of magic is going to be required to make `cleanup` work.
+This is as good as I could get by myself. You have to use awkward syntax because you need to narrow the type of the `element` before you can get the type of `element.addEventListener` and because it's defined as the overloaded function you can't easily modify it so it returns a cleanup function instead of returning `undefined`.
 
-So that's where we are now. You can copy the code above into your project or just install the package. The whole thing is ~200 bytes gzipped. Importing individual functions is going to be even smaller.
+So I asked literal [TypeScript Wizards](https://www.mattpocock.com/discord) for help and turns out that instead of trying to extract the type of `addEventListener` you can instead use types from `on${event}` property. So for example, instead of trying to find the type of `handler` in `document.addEventListener("resize", handler)`, we find the type of argument of `document.onresize` which is `UIEvent`, and cast `handler` to `(event: UIEvent) => void`.
 
-## Full React example
+That will give us this monstrosity (well we know that it's going to be compiled to 100 bytes minified, but still):
 
-Before (notice the need to add types to `e`)
-
-```tsx
-useEffect(() => {
-  const handleEscape = (e: KeyboardEvent) => {
-    if (e.key === "Escape") {
-      setIsMenuOpen(false);
-    }
+```ts
+export function radEventListener<
+  MyElement extends { addEventListener: any; removeEventListener: any },
+  // get the possible events by using the `MyElement.on${someEvent}` properties
+  Event extends {
+    [K in keyof MyElement]-?: K extends `on${infer E}` ? E : never;
+  }[keyof MyElement]
+>(
+  element: MyElement,
+  // recreate the args for addEventListener
+  ...args: [
+    type: Event,
+    // grab the correct types off the function
+    listener: MyElement extends Record<
+      `on${Event}`,
+      null | ((...args: infer Args) => infer Return)
+    >
+      ? // overwrite the type of this to make sure that it is always `MyElement`
+        (this: MyElement, ...args: Args) => Return
+      : never,
+    options?: boolean | AddEventListenerOptions
+  ]
+): () => void {
+  element.addEventListener(...args);
+  return () => {
+    element.removeEventListener(...args);
   };
-
-  if (isMenuOpen) {
-    document.addEventListener("keydown", handleEscape);
-
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }
-  return;
-}, [isMenuOpen]);
+}
 ```
 
-After (notice there is no need to add types to `e` anymore)
-
-```tsx
-import { rad } from "rad-event-listener";
-
-useEffect(() => {
-  if (isMenuOpen) {
-    return rad(document, (add) =>
-      add("keydown", (e) => {
-        if (e.key === "Escape") {
-          setIsMenuOpen(false);
-        }
-      })
-    );
-  }
-  return;
-}, [isMenuOpen]);
-```
+So that's where we are now. You can copy the code above into your project or just install the package. The whole thing is ~180 bytes gzipped. Importing individual functions is going to be even smaller (`radEventListener` 105 bytes, `rad` 147 bytes).
 
 ## Another sane type-safe alternative
 
@@ -172,7 +196,29 @@ useEffect(() => {
 
 `options.signal` parameter is [well supported](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#browser_compatibility) by all modern browsers. Also sometimes it's enough to use the `once` parameter.
 
-## Live examples
+## For completeness' sake, the approach using `handleEvent` (not type safe):
+
+```tsx
+useEffect(() => {
+  if (isMenuOpen) {
+    const handler = {
+      handleEvent: function (e: KeyboardEvent) {
+        if (e.key === "Escape") {
+          setIsMenuOpen((x) => !x);
+        }
+      },
+      addEventListener: function () {
+        document.addEventListener("keydown", this);
+        return () => document.removeEventListener("keydown", this);
+      },
+    };
+    return handler.addEventListener();
+  }
+  return;
+}, [isMenuOpen]);
+```
+
+## Live examples using rad
 
 - [SolidJS ](https://stackblitz.com/edit/solidjs-templates-pzxnlg?file=src%2FApp.tsx)
 - [React](https://stackblitz.com/edit/stackblitz-starters-rbk3jb?file=src%2FApp.tsx)
@@ -187,7 +233,7 @@ deno task dev
 deno bench
 deno test
 ./_build_npm.ts 0.0.1
-cd npm && npm publish
+(cd npm && npm publish)
 ```
 
 ## See also
@@ -197,6 +243,10 @@ I only found them after I wrote my own wrapper for addEventListener, but I don't
 - https://www.npmjs.com/package/disposable-event
 - https://www.npmjs.com/package/seng-disposable-event-listener
 - https://www.npmjs.com/package/@audiopump/on
+
+## Thanks
+
+- @ggrandi who wrote types for `radEventListener` https://github.com/JLarky/rad-event-listener/commit/cef9577a9130a8681866289f1bae2a1f0b549ece
 
 ## Support
 
