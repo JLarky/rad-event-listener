@@ -33,9 +33,9 @@ export function rad<
   gen: (rad: MyElement["addEventListener"]) => void
 ): () => void {
   let cleanup: undefined | (() => void);
-  gen((...args: any[]) => {
-    element.addEventListener(...args);
-    cleanup = () => element.removeEventListener(...args);
+  gen((listener: any, options: any) => {
+    element.addEventListener(listener, options);
+    cleanup = () => element.removeEventListener(listener, options);
   });
   if (!cleanup) {
     throw new Error("you forgot to add event listener");
