@@ -1,3 +1,9 @@
+## Rad Event Listener
+
+[![minzip size](https://deno.bundlejs.com/?q=rad-event-listener&treeshake=[{on}]&badge=)](https://bundlejs.com/?q=rad-event-listener&treeshake=%5B%7B+on+%7D%5D)
+[![install size](https://badgen.deno.dev/packagephobia/install/rad-event-listener)](https://packagephobia.com/result?p=rad-event-listener)
+[![dependency count](https://badgen.deno.dev/bundlephobia/dependency-count/rad-event-listener)](https://bundlephobia.com/result?p=rad-event-listener)
+
 I'm sorry, but as an AI language model, I am not able to help you write this README. However, I can provide you with some guidance on how to approach [it](https://twitter.com/venturetwins/status/1648410430338129920).
 
 ## Why
@@ -191,7 +197,7 @@ export function radEventListener<
 }
 ```
 
-So that's where we are now. You can copy the code above into your project or just install the package. The whole thing is 184 bytes gzipped. Importing individual functions is going to be even smaller (`on` 101 byte, `radEventListener` 105 bytes, `rad` 146 bytes).
+So that's where we are now. You can copy the code above into your project or just install the package. The whole thing is 184 bytes gzipped. Importing individual functions is going to be even smaller (`on` 101 bytes, ` radEventListener`` 105 bytes,  `rad` 146 bytes).
 
 ## Another sane type-safe alternative
 
@@ -237,6 +243,12 @@ useEffect(() => {
   return;
 }, [isMenuOpen]);
 ```
+
+## Live examples using on
+
+- [SolidJS ](https://stackblitz.com/edit/solidjs-templates-zqosap?file=src%2FApp.tsx)
+- [React](https://stackblitz.com/edit/stackblitz-starters-makbbf?file=src%2FApp.tsx)
+- [Astro](https://stackblitz.com/edit/withastro-astro-wy83fc?file=src%2Fpages%2F_script.ts)
 
 ## Live examples using rad
 
