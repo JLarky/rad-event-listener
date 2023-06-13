@@ -6,7 +6,7 @@ I'm sorry, but as an AI language model, I am not able to help you write this REA
 
 https://twitter.com/JLarky/status/1664858920228118528
 
-## What do you get from this package (React example)
+## What you get from this package (React example)
 
 ```tsx
 import { radEventListener } from "rad-event-listener";
@@ -23,7 +23,23 @@ useEffect(() => {
 }, [isMenuOpen]);
 ```
 
-Notice that `e` is correctly typed as `KeyboardEvent` so we can use `e.key` without any issues.
+Notice that `e` is correctly typed as `KeyboardEvent` so we can use `e.key` without any issues. `radEventListener` returns a cleanup function that is going to be called on cleanup. So just to clarify what is actually happening:
+
+```tsx
+import { radEventListener } from "rad-event-listener";
+
+useEffect(() => {
+  if (isMenuOpen) {
+    const cleanup = radEventListener(document, "keydown", (e) => {
+      if (e.key === "Escape") {
+        setIsMenuOpen(false);
+      }
+    });
+    return () => cleanup();
+  }
+  return;
+}, [isMenuOpen]);
+```
 
 ## What you have to do if you are not using this package
 
@@ -48,25 +64,29 @@ useEffect(() => {
 
 Notice that you had to specify the type of `e` as `KeyboardEvent` and you had to create a separate function and pass it to both `addEventListener` and `removeEventListener`.
 
-## One more fun example
+## API reference
 
 ```ts
-import { radEventListener, rad } from "rad-event-listener";
+import { on, rad, radEventListener } from "rad-event-listener";
 
-const cleanup = radEventListener(window, "resize", function (e) {
-  console.log(e.preventDefault());
-  console.log(this);
+const cleanup = radEventListener(document, "mousemove", function (e) {
+  console.log("mouse moved to", e.x, e.y, this === e.currentTarget);
 });
 
-const cleanup2 = rad(window, (add) =>
-  add("resize", function (e) {
-    console.log(e.preventDefault());
-    console.log(this);
+// on is alias of radEventListener
+const cleanup2 = on(document, "mousemove", function (e) {
+  console.log("mouse moved to", e.x, e.y, this === e.currentTarget);
+});
+
+// rad is using a different way to get type of arguments
+const cleanup3 = rad(document, (add) =>
+  add("mousemove", function (e) {
+    console.log("mouse moved to", e.x, e.y, this === e.currentTarget);
   })
 );
 ```
 
-In the example above you can see that both `this` and `e` are typed correctly 🤯. More on `rad` in the next section.
+In the examples above you can see that both `this` and `e` are typed correctly 🤯. More on `rad` in the next section.
 
 ## More on why
 
@@ -196,7 +216,7 @@ useEffect(() => {
 
 `options.signal` parameter is [well supported](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#browser_compatibility) by all modern browsers. Also sometimes it's enough to use the `once` parameter.
 
-## For completeness' sake, the approach using `handleEvent` (not type safe):
+## For completeness' sake, the approach using `handleEvent` (you have to add types to `handler` manually):
 
 ```tsx
 useEffect(() => {

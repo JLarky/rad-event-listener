@@ -7,7 +7,33 @@ import {
   assertSpyCalls,
   spy,
 } from "https://deno.land/std@0.190.0/testing/mock.ts";
-import { radEventListener, rad } from "./mod.ts";
+import { radEventListener, rad, on } from "./mod.ts";
+
+Deno.test(function onTest() {
+  const addEventListener = spy((type: "load", cb: () => void) => {});
+  const removeEventListener = spy((type: "load", cb: () => void) => {});
+  const onEvent = spy();
+  // setup
+  const cleanup = on(
+    { addEventListener, removeEventListener, onload: () => {} },
+    "load",
+    onEvent
+  );
+  assertSpyCalls(addEventListener, 1);
+  assertSpyCalls(removeEventListener, 0);
+  assertSpyCall(addEventListener, 0, {
+    args: ["load", onEvent],
+    returned: undefined,
+  });
+  // cleanup
+  assertEquals(cleanup(), undefined);
+  assertSpyCalls(addEventListener, 1);
+  assertSpyCalls(removeEventListener, 1);
+  assertSpyCall(removeEventListener, 0, {
+    args: ["load", onEvent],
+    returned: undefined,
+  });
+});
 
 Deno.test(function radEventListenerTest() {
   const addEventListener = spy((type: "load", cb: () => void) => {});

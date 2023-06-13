@@ -26,6 +26,8 @@ export function radEventListener<
   };
 }
 
+export { radEventListener as on };
+
 export function rad<
   MyElement extends { addEventListener?: any; removeEventListener?: any }
 >(
