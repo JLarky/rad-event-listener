@@ -191,7 +191,7 @@ export function radEventListener<
 }
 ```
 
-So that's where we are now. You can copy the code above into your project or just install the package. The whole thing is ~180 bytes gzipped. Importing individual functions is going to be even smaller (`radEventListener` 105 bytes, `rad` 147 bytes).
+So that's where we are now. You can copy the code above into your project or just install the package. The whole thing is 184 bytes gzipped. Importing individual functions is going to be even smaller (`on` 101 byte, `radEventListener` 105 bytes, `rad` 146 bytes).
 
 ## Another sane type-safe alternative
 

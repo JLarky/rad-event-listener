@@ -46,7 +46,7 @@ async function start() {
   });
 
   await Deno.copyFile("LICENSE", "npm/LICENSE");
-  await Deno.copyFile("README.md", "npm/README.md");
+  await Deno.copyFile("README.npm.md", "npm/README.md");
 }
 
 start();
