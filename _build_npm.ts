@@ -19,7 +19,7 @@ async function start() {
     test: false,
     typeCheck: false,
     compilerOptions: {
-      importHelpers: true,
+      importHelpers: false,
       target: "ES2021",
       lib: ["esnext", "dom", "dom.iterable"],
     },
