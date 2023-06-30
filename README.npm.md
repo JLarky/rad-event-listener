@@ -9,14 +9,14 @@ Please see the full README at https://github.com/JLarky/rad-event-listener
 Before:
 
 ```ts
-const handler = (e: MouseEvent) => {
+function handler(this: Document, e: MouseEvent) {
   console.log("mouse moved to", e.x, e.y, this === e.currentTarget);
 };
 
-document.addEventListener("keydown", handleEscape);
+document.addEventListener("mousemove", handler);
 
 const cleanup = () => {
-  document.removeEventListener("keydown", handleEscape);
+  document.removeEventListener("mousemove", handler);
 };
 ```
 
@@ -25,10 +25,15 @@ After:
 ```ts
 import { on, rad, radEventListener } from "rad-event-listener";
 
-// on is alias of radEventListener
-const cleanup = on(document, "mousemove", function (e) {
+const cleanup = radEventListener(document, "mousemove", function (e) {
   console.log("mouse moved to", e.x, e.y, this === e.currentTarget);
 });
 ```
 
-In the examples above you can see that both `this` and `e` are typed correctly 🤯. In the first example we had to manually type `e` and `this` was `any`.
+Both of examples are written in a type-safe manner that will not allow you to make mistakes. But one of them made you work much more to get types of `this` and `e` right as well as made you do more work to remove the listener.
+
+## Live examples
+
+- [SolidJS ](https://stackblitz.com/edit/solidjs-templates-zqosap?file=src%2FApp.tsx)
+- [React](https://stackblitz.com/edit/stackblitz-starters-makbbf?file=src%2FApp.tsx)
+- [Astro](https://stackblitz.com/edit/withastro-astro-wy83fc?file=src%2Fpages%2F_script.ts)
