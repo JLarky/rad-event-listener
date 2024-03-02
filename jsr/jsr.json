@@ -1,0 +1,5 @@
+{
+  "name": "@jlarky/rad-event-listener",
+  "version": "0.2.4",
+  "exports": "./mod.ts"
+}
